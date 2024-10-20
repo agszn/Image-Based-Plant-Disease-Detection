@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block style %}
+<style>
+    /* Custom styles for the about section */
+    .about {
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        max-width: 800px;
+        background-color: white;
+    }
+</style>
+{% endblock %}
+
+{% block index %}
+{% endblock %}
+
+{% block content %}
+<section class="about mx-auto mt-10 p-6 border border-gray-300 rounded-lg max-w-4xl bg-white shadow-md">
+    
+    <h1 class="text-3xl font-bold text-center mb-4">About</h1>
+    <p class="font-semibold text-lg mb-4">
+        Using machine learning for image-based disease detection in plants means using advanced technology to teach computers to spot signs of diseases in plants by analyzing images. This method is quicker and more accurate than traditional manual methods, helping farmers catch problems early and take action to protect their crops. By feeding computers lots of pictures of healthy and sick plants, they learn to recognize patterns and colors that indicate different diseases. This technology not only saves time but also helps reduce the use of harmful chemicals, making farming more sustainable in the long run.
+    </p>
+    <!-- <hr class="my-6 border-t-2 border-gray-300">
+    <div class="about-info flex flex-col md:flex-row items-center mb-6">
+        <div class="about-img">
+         <center>  <img src="http://nwdistrict.ifas.ufl.edu/hort/files/2012/06/cercospora_hydrangea.jpg" alt="About Image" class="max-w-xs md:max-w-sm rounded-lg mb-4 md:mb-0 md:mr-6" style="width: 20%;"></center> 
+        </div>
+        <div class="about-text flex-1">
+            <p>With the power of machine learning, farmers can ensure their crops stay healthy, ultimately leading to more efficient and eco-friendly farming practices.</p>
+        </div>
+    </div> -->
+    <a href="#" class="btn mt-6 px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Learn More</a>
+</section>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

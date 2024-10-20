@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{% endblock %}
+
+{% block style %}
+{% endblock %}
+
+{% block index %}
+{% endblock %}
+
+{% block content %}
+    <h1>Prediction Result</h1>
+
+    {% if predicted_class %}
+        <h2>Predicted Class:</h2>
+        <p>{{ predicted_class }}</p>
+    {% else %}
+        <p>No prediction result available.</p>
+    {% endif %}
+
+    {% if medicinal_qualities %}
+        <h3>Medicinal Qualities:</h3>
+        <ul>
+            {% for quality in medicinal_qualities %}
+                <li>{{ quality }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+            <p>No medicinal qualities available for this plant.</p>
+    {% endif %}
+{% endblock %}
+
+
+{% block footer %}
+{% endblock %}

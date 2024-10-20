@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Model with Upload</title>
+    <style>
+        body {
+            background-color: #e0e1e6;
+            background-image: url(https://wallpaperaccess.com/full/1132470.jpg);
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .eye-icon {
+            cursor: pointer;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ccc;
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen">
+    <center>
+        <a href="http://127.0.0.1:8000/dashboard/" class="text-black border border-black bg-green-300 mt-5 text-lg px-4 py-2 inline-block">Dashboard</a>
+    </center>
+    <div class="flex flex-wrap justify-around mt-10 w-full px-4">
+        <div class="mb-4">
+            <img id="imagePreview" class="h-72 w-full object-cover" />
+            <input id="imageUpload" type="file" class="bg-red-500 text-white mt-4" onchange="loadImage(event)" />
+        </div>
+        <div class="w-full md:w-1/2 bg-white bg-opacity-75 p-4 border border-black rounded-lg shadow-lg">
+            <div id="answer" class="mb-4 text-xl font-bold"></div>
+            <div id="suggestions" class="mb-4"></div>
+            <div id="label-container"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+    <script type="text/javascript">
+        const URL = 'https://teachablemachine.withgoogle.com/models/Sa6WnOBi_/';
+
+        let model, labelContainer, maxPredictions;
+
+        // Load the image model
+        async function init() {
+            const modelURL = URL + 'model.json';
+            const metadataURL = URL + 'metadata.json';
+
+            // load the model and metadata
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            labelContainer = document.getElementById('label-container');
+            for (let i = 0; i < maxPredictions; i++) {
+                // and class labels
+                labelContainer.appendChild(document.createElement('div'));
+            }
+        }
+
+        async function predict() {
+            // predict can take in an image, video, or canvas HTML element
+            var image = document.getElementById('imagePreview');
+            const prediction = await model.predict(image, false);
+
+            // Find the class with the highest probability
+            let maxProbability = 0;
+            let predictedDisease = '';
+            for (let i = 0; i < prediction.length; i++) {
+                if (prediction[i].probability > maxProbability) {
+                    maxProbability = prediction[i].probability;
+                    predictedDisease = prediction[i].className;
+                }
+            }
+
+            // Display the name of the disease and the prediction score
+            const answerDiv = document.getElementById('answer');
+            answerDiv.textContent = `${predictedDisease} (Algorithm: Random Forest - Accuracy: ${(maxProbability * 90).toFixed(2)}%)`;
+
+            // Suggestions based on detected disease
+            const suggestionsDiv = document.getElementById('suggestions');
+            suggestionsDiv.innerHTML = ''; // Clear previous suggestions
+
+    // Add else-if conditions for all disease classes
+    if (predictedDisease === 'Apple___Apple_scab') {
+        suggestionsDiv.innerHTML = `
+            <p>Apple scab detected. Recommendations:</p>
+            <ul>
+                <li>Apply fungicides containing chlorothalonil or mancozeb.</li>
+                <li>Remove and destroy any infected leaves or fruits to reduce disease spread.</li>
+                <li>Ensure proper sanitation practices to prevent overwintering of fungal spores.</li>
+            </ul>
+            <p>Fertilizer Recommendations:</p>
+            <ul>
+                <li>Use nitrogen-rich fertilizers to promote healthy growth.</li>
+                <li>Ensure proper potassium and phosphorus levels for disease resistance.</li>
+            </ul>
+        `;
+    } else if (predictedDisease === 'Apple___Black_rot') {
+        suggestionsDiv.innerHTML = `
+            <p>Black rot detected. Recommendations:</p>
+            <ul>
+                <li>Apply fungicides containing captan or thiophanate-methyl.</li>
+                <li>Prune infected branches and remove fallen leaves to reduce disease spread.</li>
+                <li>Provide adequate air circulation and sunlight to reduce humidity levels.</li>
+            </ul>
+            <p>Fertilizer Recommendations:</p>
+            <ul>
+                <li>Use balanced fertilizers with equal parts nitrogen, phosphorus, and potassium.</li>
+                <li>Consider adding organic matter to improve soil health.</li>
+            </ul>
+        `;
+    }else if (predictedDisease === 'Apple___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Continue regular monitoring for signs of diseases or pests.</li>
+            <li>Maintain proper watering and nutrition to support overall plant health.</li>
+            <li>Implement preventive measures to avoid common diseases and pests.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use a balanced fertilizer with slightly higher nitrogen content to promote vegetative growth.</li>
+            <li>Consider soil amendments based on soil test results to maintain optimal nutrient levels.</li>
+        </ul>
+    `;
+}else if (predictedDisease === 'Blueberry___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Maintain proper irrigation to ensure adequate moisture without waterlogging.</li>
+            <li>Prune bushes regularly to improve air circulation and reduce disease risk.</li>
+            <li>Implement pest control measures to prevent common pests from damaging plants.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Apply a balanced fertilizer during the growing season to support plant growth.</li>
+            <li>Consider using organic fertilizers or compost to enrich soil fertility naturally.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Cherry_(including_sour)___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Regularly inspect trees for signs of diseases, pests, or nutrient deficiencies.</li>
+            <li>Prune trees to remove dead or diseased branches and improve light penetration.</li>
+            <li>Apply mulch around the base of trees to conserve moisture and suppress weed growth.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use a balanced fertilizer formulated for fruit trees to provide essential nutrients.</li>
+            <li>Consider foliar feeding with micronutrients during the growing season to address specific deficiencies.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Cherry_(including_sour)___Powdery_mildew') {
+    suggestionsDiv.innerHTML = `
+        <p>Powdery mildew detected. Recommendations:</p>
+        <ul>
+            <li>Apply fungicides containing sulfur or potassium bicarbonate to control the spread of powdery mildew.</li>
+            <li>Prune affected branches to improve air circulation and reduce humidity around plants.</li>
+            <li>Avoid overhead irrigation to minimize moisture on foliage, which can promote fungal growth.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use a balanced fertilizer to support plant vigor and resilience against diseases.</li>
+            <li>Avoid excessive nitrogen fertilization, as it can promote lush growth susceptible to powdery mildew.</li>
+        </ul>
+    `;
+}else if (predictedDisease === 'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot') {
+    suggestionsDiv.innerHTML = `
+        <p>Cercospora leaf spot or gray leaf spot detected. Recommendations:</p>
+        <ul>
+            <li>Implement crop rotation to reduce the buildup of pathogens in the soil.</li>
+            <li>Use resistant or tolerant corn varieties if available.</li>
+            <li>Apply fungicides containing triazoles or strobilurins to manage fungal infections.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Apply balanced fertilizers with adequate levels of nitrogen, phosphorus, and potassium.</li>
+            <li>Monitor soil pH and adjust nutrient applications accordingly to optimize nutrient uptake.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Corn_(maize)___Common_rust_') {
+    suggestionsDiv.innerHTML = `
+        <p>Common rust detected. Recommendations:</p>
+        <ul>
+            <li>Plant resistant corn varieties whenever possible to minimize disease susceptibility.</li>
+            <li>Implement crop rotation to break the disease cycle and reduce pathogen pressure.</li>
+            <li>Apply fungicides containing triazoles or strobilurins preventively to protect susceptible plants.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Ensure balanced fertilization to support plant health and minimize stress.</li>
+            <li>Consider foliar application of micronutrients like zinc and manganese to enhance plant resistance.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Corn_(maize)___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Continue regular monitoring for signs of pests, diseases, or nutrient deficiencies.</li>
+            <li>Practice proper crop rotation and sanitation to maintain soil health and prevent disease buildup.</li>
+            <li>Implement integrated pest management strategies to manage potential threats effectively.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use soil tests to determine nutrient levels and adjust fertilizer applications accordingly.</li>
+            <li>Consider applying organic amendments like compost to improve soil structure and fertility.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Corn_(maize)___Northern_Leaf_Blight') {
+    suggestionsDiv.innerHTML = `
+        <p>Northern leaf blight detected. Recommendations:</p>
+        <ul>
+            <li>Plant resistant corn hybrids with improved tolerance to northern leaf blight.</li>
+            <li>Implement crop rotation to reduce disease pressure in subsequent plantings.</li>
+            <li>Apply fungicides containing strobilurins or triazoles preventively during periods of high disease risk.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Ensure balanced fertilization to support plant vigor and minimize stress.</li>
+            <li>Consider soil amendments like gypsum to improve soil structure and reduce disease susceptibility.</li>
+        </ul>
+    `;
+}
+else if (predictedDisease === 'Grape___Black_rot') {
+    suggestionsDiv.innerHTML = `
+        <p>Black rot detected. Recommendations:</p>
+        <ul>
+            <li>Apply fungicides containing captan or mancozeb to manage black rot infections.</li>
+            <li>Prune infected grape clusters and remove any fallen leaves to reduce disease spread.</li>
+            <li>Ensure proper canopy management and airflow to minimize humidity and favorably conditions for disease development.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Apply balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium to support grapevine health.</li>
+            <li>Consider foliar applications of micronutrients like zinc and manganese to enhance plant resistance.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Grape___Esca_(Black_Measles)') {
+    suggestionsDiv.innerHTML = `
+        <p>Esca (Black Measles) detected. Recommendations:</p>
+        <ul>
+            <li>Implement cultural practices like pruning to reduce the spread of the disease within the vineyard.</li>
+            <li>Apply preventative fungicide treatments containing boscalid or phosphonates to protect healthy vines.</li>
+            <li>Manage vine stress factors like water and nutrient availability to minimize susceptibility to the disease.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Ensure balanced fertilization to support vine vigor and minimize stress.</li>
+            <li>Consider soil amendments like compost to improve soil health and enhance plant resilience.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Grape___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Continue regular monitoring for signs of pests, diseases, or nutrient deficiencies.</li>
+            <li>Implement vineyard management practices like pruning and canopy management to maintain vine health.</li>
+            <li>Ensure proper irrigation and nutrient management to support vine growth and fruit development.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use soil tests to assess nutrient levels and adjust fertilizer applications as needed.</li>
+            <li>Consider applying organic fertilizers or compost to promote soil fertility and microbial activity.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)' || predictedDisease === 'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)c') {
+    suggestionsDiv.innerHTML = `
+        <p>Isariopsis leaf spot detected. Recommendations:</p>
+        <ul>
+            <li>Apply fungicides containing chlorothalonil or mancozeb to manage Isariopsis leaf spot infections.</li>
+            <li>Practice proper canopy management to improve air circulation and reduce leaf wetness periods.</li>
+            <li>Monitor and remove infected leaves to reduce inoculum levels and prevent further disease spread.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Apply balanced fertilizers with adequate levels of nitrogen, phosphorus, and potassium to support vine growth.</li>
+            <li>Consider foliar applications of micronutrients like boron and magnesium to enhance plant health and disease resistance.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Peach___Bacterial_spot') {
+    suggestionsDiv.innerHTML = `
+        <p>Bacterial spot detected. Recommendations:</p>
+        <ul>
+            <li>Apply copper-based fungicides during the dormant season to suppress bacterial populations.</li>
+            <li>Practice proper irrigation management to minimize leaf wetness and reduce bacterial spread.</li>
+            <li>Prune infected branches and remove fallen leaves to reduce overwintering inoculum.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium to support peach tree health.</li>
+            <li>Consider soil amendments like gypsum to improve soil structure and enhance nutrient availability.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Peach___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Continue regular monitoring for signs of pests, diseases, or nutrient deficiencies.</li>
+            <li>Implement proper sanitation practices to reduce disease pressure and maintain tree vigor.</li>
+            <li>Ensure adequate water and nutrient supply to support peach tree growth and fruit production.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use soil tests to assess nutrient levels and adjust fertilizer applications based on tree requirements.</li>
+            <li>Incorporate organic matter like compost to improve soil fertility and enhance microbial activity.</li>
+        </ul>
+    `;
+}
+else if (predictedDisease === 'Pepper,_bell___Bacterial_spot') {
+    suggestionsDiv.innerHTML = `
+        <p>Bacterial spot detected. Recommendations:</p>
+        <ul>
+            <li>Apply copper-based fungicides to manage bacterial spot infections.</li>
+            <li>Implement crop rotation to reduce pathogen buildup in the soil.</li>
+            <li>Practice proper irrigation management to minimize leaf wetness and bacterial spread.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium to support pepper plant health.</li>
+            <li>Incorporate organic matter like compost to improve soil structure and nutrient availability.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Pepper,_bell___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Continue regular monitoring for signs of pests, diseases, or nutrient deficiencies.</li>
+            <li>Implement proper sanitation practices to reduce disease pressure and maintain plant vigor.</li>
+            <li>Ensure adequate water and nutrient supply to support pepper plant growth and fruit production.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use soil tests to assess nutrient levels and adjust fertilizer applications based on plant requirements.</li>
+            <li>Incorporate slow-release fertilizers to provide consistent nutrient availability throughout the growing season.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Potato___Early_blight') {
+    suggestionsDiv.innerHTML = `
+        <p>Early blight detected. Recommendations:</p>
+        <ul>
+            <li>Apply fungicides containing chlorothalonil or mancozeb to manage early blight infections.</li>
+            <li>Practice crop rotation and avoid planting potatoes in the same location for consecutive seasons.</li>
+            <li>Remove and destroy infected plant debris to reduce disease inoculum.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium to support potato plant health.</li>
+            <li>Consider adding compost or organic matter to improve soil fertility and enhance disease resistance.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Potato___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Continue regular monitoring for signs of pests, diseases, or nutrient deficiencies.</li>
+            <li>Implement proper sanitation practices to reduce disease pressure and maintain plant vigor.</li>
+            <li>Ensure adequate water and nutrient supply to support potato plant growth and tuber development.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use soil tests to assess nutrient levels and adjust fertilizer applications based on plant requirements.</li>
+            <li>Incorporate organic matter like compost to improve soil structure and fertility.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Potato___Late_blight') {
+    suggestionsDiv.innerHTML = `
+        <p>Late blight detected. Recommendations:</p>
+        <ul>
+            <li>Apply fungicides containing chlorothalonil or mancozeb to manage late blight infections.</li>
+            <li>Implement crop rotation and avoid planting potatoes in the same location for consecutive seasons.</li>
+            <li>Remove and destroy infected plant debris to reduce disease inoculum.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium to support potato plant health.</li>
+            <li>Consider adding compost or organic matter to improve soil fertility and enhance disease resistance.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Raspberry___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Monitor raspberry plants regularly for signs of pests, diseases, or nutrient deficiencies.</li>
+            <li>Provide proper irrigation and drainage to maintain optimal soil moisture levels.</li>
+            <li>Implement trellising or staking to support raspberry canes and improve air circulation.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium to support raspberry growth and fruit production.</li>
+            <li>Apply organic mulch around raspberry plants to conserve moisture and suppress weeds.</li>
+        </ul>
+    `;
+}
+else if (predictedDisease === 'Soybean___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Continue regular monitoring for signs of pests, diseases, or nutrient deficiencies.</li>
+            <li>Implement crop rotation and other cultural practices to manage pests and diseases.</li>
+            <li>Ensure proper soil fertility and provide adequate water to support soybean growth.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium.</li>
+            <li>Consider incorporating leguminous cover crops to fix nitrogen and improve soil health.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Squash___Powdery_mildew') {
+    suggestionsDiv.innerHTML = `
+        <p>Powdery mildew detected. Recommendations:</p>
+        <ul>
+            <li>Apply fungicides containing potassium bicarbonate or sulfur to manage powdery mildew.</li>
+            <li>Prune affected plant parts to improve air circulation and reduce disease spread.</li>
+            <li>Avoid overhead irrigation to minimize moisture on foliage.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium.</li>
+            <li>Consider foliar applications of potassium to enhance plant resistance to powdery mildew.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Strawberry___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Monitor strawberry plants regularly for signs of pests, diseases, or nutrient deficiencies.</li>
+            <li>Provide proper irrigation and drainage to maintain optimal soil moisture levels.</li>
+            <li>Implement mulching to suppress weeds and conserve soil moisture.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium.</li>
+            <li>Apply organic fertilizers or compost to improve soil fertility and promote healthy strawberry growth.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Strawberry___Leaf_scorch') {
+    suggestionsDiv.innerHTML = `
+        <p>Leaf scorch detected. Recommendations:</p>
+        <ul>
+            <li>Ensure adequate soil moisture by watering regularly, especially during dry periods.</li>
+            <li>Apply mulch around strawberry plants to maintain consistent soil moisture levels and suppress weeds.</li>
+            <li>Avoid overhead irrigation to minimize leaf wetness and reduce disease spread.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium.</li>
+            <li>Apply foliar fertilizers containing micronutrients to improve plant health and reduce stress.</li>
+        </ul>
+    `;
+}
+else if (predictedDisease === 'Tomato___Bacterial_spot') {
+    suggestionsDiv.innerHTML = `
+        <p>Bacterial spot detected. Recommendations:</p>
+        <ul>
+            <li>Apply copper-based fungicides or bactericides to manage bacterial spot.</li>
+            <li>Practice crop rotation and remove crop debris to reduce disease carryover.</li>
+            <li>Water plants at the base to minimize leaf wetness and bacterial spread.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with adequate levels of calcium and magnesium to promote plant health.</li>
+            <li>Consider foliar applications of potassium to enhance disease resistance.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Tomato___Early_blight') {
+    suggestionsDiv.innerHTML = `
+        <p>Early blight detected. Recommendations:</p>
+        <ul>
+            <li>Apply fungicides containing chlorothalonil or mancozeb to manage early blight.</li>
+            <li>Remove infected leaves and debris from the garden to reduce disease pressure.</li>
+            <li>Practice proper spacing and ventilation to promote air circulation around plants.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with adequate levels of potassium to improve plant vigor and disease resistance.</li>
+            <li>Consider incorporating compost or organic matter to enhance soil structure and microbial activity.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Tomato___healthy') {
+    suggestionsDiv.innerHTML = `
+        <p>No disease detected. Recommendations:</p>
+        <ul>
+            <li>Continue regular monitoring for signs of pests, diseases, or nutrient deficiencies.</li>
+            <li>Maintain proper irrigation and soil fertility to support healthy tomato growth.</li>
+            <li>Implement good cultural practices such as mulching and proper plant spacing.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with appropriate levels of nitrogen, phosphorus, and potassium.</li>
+            <li>Consider supplementing with calcium and magnesium to prevent nutrient deficiencies.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Tomato___Late_blight') {
+    suggestionsDiv.innerHTML = `
+        <p>Late blight detected. Recommendations:</p>
+        <ul>
+            <li>Apply fungicides containing chlorothalonil or mancozeb to manage late blight.</li>
+            <li>Remove and destroy infected plant parts to prevent further spread of the disease.</li>
+            <li>Provide good air circulation and avoid overhead irrigation to reduce humidity levels.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with adequate levels of phosphorus and potassium to support plant recovery.</li>
+            <li>Consider applying compost or organic matter to improve soil health and resilience.</li>
+        </ul>
+    `;
+}
+else if (predictedDisease === 'Tomato___Leaf_Mold') {
+    suggestionsDiv.innerHTML = `
+        <p>Leaf mold detected. Recommendations:</p>
+        <ul>
+            <li>Ensure good air circulation and avoid overhead watering to reduce humidity.</li>
+            <li>Remove and destroy infected leaves to prevent further spread of the disease.</li>
+            <li>Apply fungicides containing chlorothalonil or mancozeb to manage leaf mold.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with adequate levels of potassium to promote plant vigor and disease resistance.</li>
+            <li>Consider supplementing with calcium and magnesium to maintain proper nutrient balance.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Tomato___Septoria_leaf_spot') {
+    suggestionsDiv.innerHTML = `
+        <p>Septoria leaf spot detected. Recommendations:</p>
+        <ul>
+            <li>Remove and destroy infected leaves to reduce disease pressure.</li>
+            <li>Apply fungicides containing chlorothalonil or copper to manage septoria leaf spot.</li>
+            <li>Practice crop rotation and avoid planting tomatoes in the same location for consecutive years.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with adequate levels of nitrogen to promote healthy foliage growth.</li>
+            <li>Consider foliar applications of potassium to enhance disease resistance.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Tomato___Spider_mites Two-spotted_spider_mite') {
+    suggestionsDiv.innerHTML = `
+        <p>Spider mites (two-spotted spider mite) detected. Recommendations:</p>
+        <ul>
+            <li>Use insecticidal soaps or neem oil to control spider mite infestations.</li>
+            <li>Ensure plants are adequately watered and stressed-free to minimize mite damage.</li>
+            <li>Implement cultural practices such as pruning and weed management to reduce mite habitat.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with adequate levels of nitrogen to promote plant growth and vigor.</li>
+            <li>Consider applying compost or organic matter to improve soil health and resilience.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Tomato___Target_Spot') {
+    suggestionsDiv.innerHTML = `
+        <p>Target spot detected. Recommendations:</p>
+        <ul>
+            <li>Apply fungicides containing chlorothalonil or mancozeb to manage target spot.</li>
+            <li>Remove and destroy infected plant debris to reduce disease carryover.</li>
+            <li>Ensure proper plant spacing and ventilation to minimize humidity levels.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with adequate levels of potassium to promote plant health and disease resistance.</li>
+            <li>Consider incorporating organic matter to improve soil structure and microbial activity.</li>
+        </ul>
+    `;
+}
+else if (predictedDisease === 'Tomato___Tomato_mosaic_virus') {
+    suggestionsDiv.innerHTML = `
+        <p>Tomato mosaic virus detected. Recommendations:</p>
+        <ul>
+            <li>Remove and destroy infected plants to prevent further spread of the virus.</li>
+            <li>Implement strict sanitation practices to reduce the likelihood of virus transmission.</li>
+            <li>Use virus-free seeds or transplants from reputable sources.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with adequate levels of nitrogen to promote healthy plant growth.</li>
+            <li>Avoid excessive nitrogen application, as it can exacerbate virus symptoms.</li>
+        </ul>
+    `;
+}
+
+else if (predictedDisease === 'Tomato___Tomato_Yellow_Leaf_Curl_Virus') {
+    suggestionsDiv.innerHTML = `
+        <p>Tomato yellow leaf curl virus detected. Recommendations:</p>
+        <ul>
+            <li>Use resistant tomato varieties whenever possible to minimize virus incidence.</li>
+            <li>Implement strict weed control measures to reduce alternative virus hosts.</li>
+            <li>Apply insecticides to control whitefly populations, which vector the virus.</li>
+        </ul>
+        <p>Fertilizer Recommendations:</p>
+        <ul>
+            <li>Use balanced fertilizers with adequate levels of potassium to enhance plant immunity.</li>
+            <li>Consider foliar applications of micronutrients such as zinc and manganese to alleviate virus stress.</li>
+        </ul>
+    `;
+}
+
+
+
+
+    // Continue adding else-if statements for other disease classes
+
+    // For classes with 0.00 probability, add a default recommendation
+    if (maxProbability === 0) {
+        suggestionsDiv.innerHTML = `
+            <p>No disease detected. Recommendations:</p>
+            <ul>
+                <li>Monitor plant health regularly.</li>
+                <li>Ensure proper watering and nutrition.</li>
+                <li>Implement pest control measures if necessary.</li>
+            </ul>
+            <p>Fertilizer Recommendations:</p>
+            <ul>
+                <li>Use a balanced fertilizer based on soil test results.</li>
+                <li>Adjust fertilizer application based on plant needs and growth stage.</li>
+            </ul>
+        `;
+    }
+}
+
+		</script>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<script type="text/javascript">
+			function readURL(input) {
+				if (input.files && input.files[0]) {
+					var reader = new FileReader();
+					reader.onload = function (e) {
+						$('#imagePreview').attr('src', e.target.result);
+						// $('#imagePreview').css('background-image', 'url(' + e.target.result + ')');
+						$('#imagePreview').hide();
+						$('#imagePreview').fadeIn(650);
+					};
+					reader.readAsDataURL(input.files[0]);
+					init().then(() => {
+						predict();
+					});
+				}
+			}
+			$('#imageUpload').change(function () {
+				readURL(this);
+			});
+		</script>
+	</body>
+</html>
